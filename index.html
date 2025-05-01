@@ -4,36 +4,102 @@
   <meta charset="UTF-8">
   <title>Attendance Tracker</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 2rem; max-width: 500px; margin: auto; }
-    label, input, select, textarea, button { display: block; width: 100%; margin: 1rem 0; }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #fff;
+      color: #333;
+    }
+
+    .container {
+      max-width: 480px;
+      margin: 5vh auto;
+      padding: 2rem;
+      background-color: #fffaf5;
+      border-radius: 16px;
+      box-shadow: 0 8px 20px rgba(255, 165, 0, 0.2);
+      border: 1px solid #ffcc99;
+    }
+
+    h2 {
+      text-align: center;
+      color: #ff6600;
+    }
+
+    label {
+      display: block;
+      margin-top: 1rem;
+      font-weight: bold;
+    }
+
+    input, select, textarea, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 0.5rem;
+      border-radius: 8px;
+      border: 1px solid #ffcc99;
+      box-sizing: border-box;
+      font-size: 1rem;
+      transition: border-color 0.3s;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: #ff6600;
+      outline: none;
+    }
+
+    button {
+      background-color: #ff6600;
+      color: white;
+      border: none;
+      margin-top: 1.5rem;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    button:hover {
+      background-color: #e65c00;
+    }
+
+    #status {
+      margin-top: 1rem;
+      text-align: center;
+      font-weight: bold;
+      color: #e65c00;
+    }
+
+    @media (max-width: 520px) {
+      .container {
+        margin: 2rem 1rem;
+      }
+    }
   </style>
 </head>
 <body>
 
-  <h2>Google Meet Attendance</h2>
+  <div class="container">
+    <h2>Google Meet Attendance</h2>
 
-  <form id="attendanceForm">
-    <label>Email:
+    <form id="attendanceForm">
+      <label for="email">Email:</label>
       <input type="email" id="email" required>
-    </label>
 
-    <label>Action:
+      <label for="action">Action:</label>
       <select id="action" required>
         <option value="">-- Select --</option>
         <option value="Login">Login</option>
         <option value="Logout">Logout</option>
         <option value="Leave">Leave Request</option>
       </select>
-    </label>
 
-    <label>Reason (optional for Leave):
-      <textarea id="reason"></textarea>
-    </label>
+      <label for="reason">Reason (for leave):</label>
+      <textarea id="reason" rows="3"></textarea>
 
-    <button type="submit">Submit</button>
-  </form>
+      <button type="submit">Submit</button>
+    </form>
 
-  <p id="status"></p>
+    <p id="status"></p>
+  </div>
 
   <script>
     const form = document.getElementById('attendanceForm');
@@ -60,7 +126,7 @@
         };
 
         try {
-          await fetch('https://script.google.com/macros/s/AKfycbyEDgkBWO__yDRaZLrwqV-W5PvHRRZZlpF1E75uRbpw99QUWSU9MX5-D08fda6LlwE1zg/exec', {
+          await fetch('https://script.google.com/macros/s/YOUR_WEB_APP_URL/exec', {
             method: 'POST',
             mode: 'no-cors',
             headers: {
@@ -68,13 +134,13 @@
             },
             body: JSON.stringify(payload)
           });
-          status.textContent = "Submitted!";
+          status.textContent = "✅ Submitted!";
         } catch (error) {
-          status.textContent = "Error submitting data.";
+          status.textContent = "❌ Submission failed.";
           console.error(error);
         }
       }, () => {
-        status.textContent = "Unable to fetch location.";
+        status.textContent = "⚠️ Unable to fetch location.";
       });
     });
   </script>
