@@ -68,6 +68,10 @@
       color: #e65c00;
     }
 
+    #reasonGroup {
+      display: none;
+    }
+
     @media (max-width: 520px) {
       .container {
         margin: 2rem 1rem;
@@ -92,8 +96,10 @@
         <option value="Leave">Leave Request</option>
       </select>
 
-      <label for="reason">Reason (for leave):</label>
-      <textarea id="reason" rows="3"></textarea>
+      <div id="reasonGroup">
+        <label for="reason">Reason (required for Leave):</label>
+        <textarea id="reason" rows="3"></textarea>
+      </div>
 
       <button type="submit">Submit</button>
     </form>
@@ -104,13 +110,23 @@
   <script>
     const form = document.getElementById('attendanceForm');
     const status = document.getElementById('status');
+    const actionSelect = document.getElementById('action');
+    const reasonGroup = document.getElementById('reasonGroup');
+
+    actionSelect.addEventListener('change', () => {
+      if (actionSelect.value === 'Leave') {
+        reasonGroup.style.display = 'block';
+      } else {
+        reasonGroup.style.display = 'none';
+      }
+    });
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       status.textContent = 'Submitting...';
 
       const email = document.getElementById('email').value;
-      const action = document.getElementById('action').value;
+      const action = actionSelect.value;
       const reason = document.getElementById('reason').value;
 
       navigator.geolocation.getCurrentPosition(async (position) => {
