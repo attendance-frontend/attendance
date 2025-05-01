@@ -1,107 +1,83 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
   <title>Attendance Tracker</title>
   <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #fffaf5;
-      color: #333;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-
-    .container {
-      text-align: center;
-      background-color: #ffffff;
-      padding: 40px;
-      border-radius: 20px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-      max-width: 400px;
-      width: 90%;
-    }
-
-    h1 {
-      color: #ff6600;
-      margin-bottom: 30px;
-    }
-
-    label {
-      font-weight: bold;
-      display: block;
-      margin-bottom: 10px;
-    }
-
-    input[type="email"] {
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      width: 100%;
-      box-sizing: border-box;
-      margin-bottom: 20px;
-    }
-
-    button {
-      background-color: #ff6600;
-      color: white;
-      border: none;
-      padding: 12px 20px;
-      margin: 10px 5px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 16px;
-      transition: background-color 0.3s ease;
-    }
-
-    button:hover {
-      background-color: #e65c00;
-    }
+    body { font-family: Arial, sans-serif; padding: 2rem; max-width: 500px; margin: auto; }
+    label, input, select, textarea, button { display: block; width: 100%; margin: 1rem 0; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Attendance Tracker</h1>
-    <label for="email">Email:</label>
-    <input type="email" id="email" required />
-    <div>
-      <button onclick="sendAttendance('Login')">Login</button>
-      <button onclick="sendAttendance('Logout')">Logout</button>
-      <button onclick="sendAttendance('Leave')">Request Leave</button>
-    </div>
-  </div>
+
+  <h2>Google Meet Attendance</h2>
+
+  <form id="attendanceForm">
+    <label>Email:
+      <input type="email" id="email" required>
+    </label>
+
+    <label>Action:
+      <select id="action" required>
+        <option value="">-- Select --</option>
+        <option value="Login">Login</option>
+        <option value="Logout">Logout</option>
+        <option value="Leave">Leave Request</option>
+      </select>
+    </label>
+
+    <label>Reason (optional for Leave):
+      <textarea id="reason"></textarea>
+    </label>
+
+    <button type="submit">Submit</button>
+  </form>
+
+  <p id="status"></p>
 
   <script>
-    async function sendAttendance(action) {
-      const email = document.getElementById("email").value.trim();
-      if (!email) return alert("Please enter your email");
+    const form = document.getElementById('attendanceForm');
+    const status = document.getElementById('status');
 
-      const reason = action === 'Leave' ? prompt("Enter reason for leave:") : "";
-      if (action === 'Leave' && !reason) return;
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      status.textContent = 'Submitting...';
 
-      const pos = await new Promise(resolve => {
-        navigator.geolocation.getCurrentPosition(resolve, () => resolve({ coords: {} }));
+      const email = document.getElementById('email').value;
+      const action = document.getElementById('action').value;
+      const reason = document.getElementById('reason').value;
+
+      navigator.geolocation.getCurrentPosition(async (position) => {
+        const latitude = position.coords.latitude;
+        const longitude = position.coords.longitude;
+
+        const payload = {
+          email,
+          action,
+          reason,
+          latitude,
+          longitude
+        };
+
+        try {
+          await fetch('https://script.google.com/macros/s/AKfycbyEDgkBWO__yDRaZLrwqV-W5PvHRRZZlpF1E75uRbpw99QUWSU9MX5-D08fda6LlwE1zg/exec', {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+          });
+          status.textContent = "Submitted!";
+        } catch (error) {
+          status.textContent = "Error submitting data.";
+          console.error(error);
+        }
+      }, () => {
+        status.textContent = "Unable to fetch location.";
       });
-
-      const data = {
-        email,
-        action,
-        reason,
-        latitude: pos.coords.latitude || "",
-        longitude: pos.coords.longitude || ""
-      };
-
-      fetch('https://script.google.com/macros/s/AKfycbyEDgkBWO__yDRaZLrwqV-W5PvHRRZZlpF1E75uRbpw99QUWSU9MX5-D08fda6LlwE1zg/exec', {
-        method: 'POST',
-        body: JSON.stringify(data),
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' }
-      }).then(res => res.text()).then(alert);
-    }
+    });
   </script>
+
 </body>
 </html>
