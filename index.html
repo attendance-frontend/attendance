@@ -95,7 +95,7 @@
         longitude: pos.coords.longitude || ""
       };
 
-      fetch('https://script.google.com/macros/s/AKfycbyEDgkBWO__yDRaZLrwqV-W5PvHRRZZlpF1E75uRbpw99QUWSU9MX5-D08fda6LlwE1zg/exec', {
+      fetch('YOUR_WEB_APP_URL', {
         method: 'POST',
         body: JSON.stringify(data),
         headers: { 'Content-Type': 'application/json' }
