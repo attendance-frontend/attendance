@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Attendance Tracker</title>
+  <title>Login/Logout Tracker</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -112,7 +112,7 @@
 </head>
 <body>
 
-  <h1>Attendance Tracker</h1>
+  <h1>Login/Logout Tracker</h1>
 
   <div class="container">
     <input type="text" id="phoneNumber" placeholder="Enter Phone Number" required>
@@ -140,7 +140,6 @@
   </div>
 
   <script>
-    const scriptUrl = 'https://script.google.com/macros/s/AKfycbxrSh9HkfM_iQmMdqgKiFGxRpFnlniPBHsJRZ19UsnbOyZ0-UdXbDCMJDDIqCFXQS2Ocw/exec';
     let currentLocation = "";
 
     navigator.geolocation.getCurrentPosition(
@@ -148,63 +147,31 @@
         currentLocation = `${position.coords.latitude},${position.coords.longitude}`;
       },
       (error) => {
-        console.error('Error getting location', error);
+        console.warn("Location error:", error);
       }
     );
 
     function track(action) {
-      const phoneNumber = document.getElementById('phoneNumber').value;
-      if (!phoneNumber) {
+      const phone = document.getElementById('phoneNumber').value.trim();
+      if (!phone) {
         alert("Please enter your phone number.");
         return;
       }
 
-      fetch(scriptUrl, {
+      fetch('https://script.google.com/macros/s/YOUR_DEPLOYED_URL/exec', {
         method: 'POST',
-        body: new URLSearchParams({
-          action: action,
-          phone: phoneNumber,
-          location: currentLocation
-        })
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `action=${action}&phone=${encodeURIComponent(phone)}&location=${encodeURIComponent(currentLocation)}`
       })
-      .then(res => res.text())
-      .then(data => {
-        alert(`${action.charAt(0).toUpperCase() + action.slice(1)} successful.`);
-      })
-      .catch(err => console.error('Error:', err));
+      .then(response => response.text())
+      .then(msg => alert(msg))
+      .catch(err => alert("Request failed: " + err));
     }
 
     function showLeaveForm() {
       document.getElementById('leaveForm').style.display = 'block';
       document.getElementById('loginBtn').disabled = true;
       document.getElementById('logoutBtn').disabled = true;
-    }
-
-    function submitLeaveRequest() {
-      const phoneNumber = document.getElementById('phoneNumber').value;
-      const leaveDate = document.getElementById('leaveDate').value;
-      const leaveReason = document.getElementById('leaveReason').value;
-
-      if (!phoneNumber || !leaveDate || !leaveReason) {
-        alert("Please fill in all fields.");
-        return;
-      }
-
-      fetch(scriptUrl, {
-        method: 'POST',
-        body: new URLSearchParams({
-          action: 'leave',
-          phone: phoneNumber,
-          leaveDate: leaveDate,
-          reason: leaveReason
-        })
-      })
-      .then(res => res.text())
-      .then(data => {
-        alert("Leave request submitted.");
-        cancelLeaveRequest();
-      })
-      .catch(err => console.error('Error:', err));
     }
 
     function cancelLeaveRequest() {
@@ -214,6 +181,30 @@
       document.getElementById('leaveDate').value = '';
       document.getElementById('leaveReason').value = '';
     }
+
+    function submitLeaveRequest() {
+      const phone = document.getElementById('phoneNumber').value.trim();
+      const date = document.getElementById('leaveDate').value;
+      const reason = document.getElementById('leaveReason').value.trim();
+
+      if (!phone || !date || !reason) {
+        alert("Please fill in all fields.");
+        return;
+      }
+
+      fetch('https://script.google.com/macros/s/YOUR_DEPLOYED_URL/exec', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `action=leave&phone=${encodeURIComponent(phone)}&leaveDate=${encodeURIComponent(date)}&reason=${encodeURIComponent(reason)}`
+      })
+      .then(response => response.text())
+      .then(msg => {
+        alert(msg);
+        cancelLeaveRequest();
+      })
+      .catch(err => alert("Request failed: " + err));
+    }
   </script>
+
 </body>
 </html>
