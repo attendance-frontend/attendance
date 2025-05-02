@@ -85,8 +85,8 @@
     <h2>Google Meet Attendance</h2>
 
     <form id="attendanceForm">
-      <label for="email">Email:</label>
-      <input type="email" id="email" required>
+      <label for="phone">Phone Number:</label>
+      <input type="text" id="phone" pattern="\d{10}" maxlength="10" required title="Enter a 10-digit phone number">
 
       <label for="action">Action:</label>
       <select id="action" required>
@@ -114,27 +114,28 @@
     const reasonGroup = document.getElementById('reasonGroup');
 
     actionSelect.addEventListener('change', () => {
-      if (actionSelect.value === 'Leave') {
-        reasonGroup.style.display = 'block';
-      } else {
-        reasonGroup.style.display = 'none';
-      }
+      reasonGroup.style.display = actionSelect.value === 'Leave' ? 'block' : 'none';
     });
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       status.textContent = 'Submitting...';
 
-      const email = document.getElementById('email').value;
+      const phone = document.getElementById('phone').value.trim();
       const action = actionSelect.value;
       const reason = document.getElementById('reason').value;
+
+      if (!/^\d{10}$/.test(phone)) {
+        status.textContent = "❌ Invalid phone number. Please enter 10 digits.";
+        return;
+      }
 
       navigator.geolocation.getCurrentPosition(async (position) => {
         const latitude = position.coords.latitude;
         const longitude = position.coords.longitude;
 
         const payload = {
-          email,
+          phone,
           action,
           reason,
           latitude,
