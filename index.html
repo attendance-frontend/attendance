@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Attendance Tracker</title>
   <style>
     body {
@@ -22,12 +22,15 @@
     h1 {
       color: white;
     }
-    input, button {
+    input, button, textarea {
       padding: 10px;
       margin: 10px;
       font-size: 16px;
       border: none;
       border-radius: 5px;
+    }
+    input[readonly] {
+      background-color: #f3f3f3;
     }
     button {
       cursor: pointer;
@@ -36,8 +39,9 @@
     }
     button:disabled {
       background-color: #ccc;
+      color: #666;
     }
-    #leaveRequest {
+    #leaveRequestBtn {
       background-color: #ff9900;
     }
     #loginLogoutButtons {
@@ -45,48 +49,84 @@
       justify-content: center;
       gap: 20px;
     }
+    #leaveForm {
+      background-color: white;
+      color: black;
+      padding: 20px;
+      border-radius: 8px;
+    }
+    textarea {
+      width: 80%;
+      height: 80px;
+    }
   </style>
 </head>
 <body>
-
   <div class="container">
     <h1>Attendance Tracker</h1>
-    
+
     <!-- Phone Number Input -->
-    <input type="text" id="phoneNumber" placeholder="Enter Phone Number (10 digits)" maxlength="10" required>
-    
-    <!-- Location Input -->
-    <input type="text" id="location" placeholder="Enter Location" required>
+    <input type="text" id="phoneNumber" placeholder="Enter Phone Number (10 digits)" maxlength="10" required />
+
+    <!-- GPS Location (Auto Fetched) -->
+    <input type="text" id="location" placeholder="Fetching location..." readonly required />
 
     <!-- Leave Request -->
     <button id="leaveRequestBtn" onclick="requestLeave()">Leave Request</button>
 
+    <!-- Login/Logout Buttons -->
     <div id="loginLogoutButtons">
       <button id="loginBtn" onclick="login()">Login</button>
       <button id="logoutBtn" onclick="logout()">Logout</button>
     </div>
-    
-    <!-- Leave Form -->
+
+    <!-- Leave Request Form -->
     <div id="leaveForm" style="display: none;">
       <h2>Leave Request Form</h2>
-      <input type="date" id="leaveDate" required>
+      <input type="date" id="leaveDate" required />
       <textarea id="reason" placeholder="Reason for leave" required></textarea>
+      <br />
       <button id="submitLeaveBtn" onclick="submitLeave()">Submit Leave Request</button>
       <button id="cancelLeaveBtn" onclick="cancelLeave()">Cancel</button>
     </div>
   </div>
 
   <script>
-    const scriptUrl = 'https://script.google.com/macros/s/AKfycbxrSh9HkfM_iQmMdqgKiFGxRpFnlniPBHsJRZ19UsnbOyZ0-UdXbDCMJDDIqCFXQS2Ocw/exec';
+    const scriptUrl = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec'; // Replace with actual URL
 
-    // Toggle visibility of Leave form
+    // Fetch GPS location
+    function fetchLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const lat = position.coords.latitude.toFixed(6);
+            const lon = position.coords.longitude.toFixed(6);
+            document.getElementById('location').value = `${lat},${lon}`;
+          },
+          (error) => {
+            console.error("Location error:", error);
+            alert("Unable to fetch location. Please allow location access.");
+          }
+        );
+      } else {
+        alert("Geolocation is not supported by this browser.");
+      }
+    }
+
+    // Leave Request UI
     function requestLeave() {
       document.getElementById('leaveForm').style.display = 'block';
       document.getElementById('loginLogoutButtons').style.display = 'none';
       document.getElementById('leaveRequestBtn').disabled = true;
     }
 
-    // Submit leave request
+    function cancelLeave() {
+      document.getElementById('leaveForm').style.display = 'none';
+      document.getElementById('loginLogoutButtons').style.display = 'flex';
+      document.getElementById('leaveRequestBtn').disabled = false;
+    }
+
+    // Submit Leave Request
     function submitLeave() {
       const phone = document.getElementById('phoneNumber').value;
       const leaveDate = document.getElementById('leaveDate').value;
@@ -101,23 +141,16 @@
           reason: reason
         })
       })
-      .then(response => response.text())
-      .then(data => {
-        alert('Leave request submitted');
-        console.log(data);
-        cancelLeave();
-      })
-      .catch(error => console.error('Error:', error));
+        .then(response => response.text())
+        .then(data => {
+          alert('Leave request submitted');
+          console.log(data);
+          cancelLeave();
+        })
+        .catch(error => console.error('Error:', error));
     }
 
-    // Cancel leave request
-    function cancelLeave() {
-      document.getElementById('leaveForm').style.display = 'none';
-      document.getElementById('loginLogoutButtons').style.display = 'flex';
-      document.getElementById('leaveRequestBtn').disabled = false;
-    }
-
-    // Login functionality
+    // Login
     function login() {
       const phone = document.getElementById('phoneNumber').value;
       const location = document.getElementById('location').value;
@@ -130,15 +163,15 @@
           location: location
         })
       })
-      .then(response => response.text())
-      .then(data => {
-        alert('Login successful');
-        console.log(data);
-      })
-      .catch(error => console.error('Error:', error));
+        .then(response => response.text())
+        .then(data => {
+          alert('Login successful');
+          console.log(data);
+        })
+        .catch(error => console.error('Error:', error));
     }
 
-    // Logout functionality
+    // Logout
     function logout() {
       const phone = document.getElementById('phoneNumber').value;
       const location = document.getElementById('location').value;
@@ -151,13 +184,16 @@
           location: location
         })
       })
-      .then(response => response.text())
-      .then(data => {
-        alert('Logout successful');
-        console.log(data);
-      })
-      .catch(error => console.error('Error:', error));
+        .then(response => response.text())
+        .then(data => {
+          alert('Logout successful');
+          console.log(data);
+        })
+        .catch(error => console.error('Error:', error));
     }
+
+    // Auto-fetch GPS location on page load
+    window.onload = fetchLocation;
   </script>
 </body>
 </html>
