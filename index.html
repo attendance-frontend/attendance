@@ -2,162 +2,162 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Attendance Tracker</title>
   <style>
     body {
-      margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #fff;
-      color: #333;
+      font-family: Arial, sans-serif;
+      background-color: white;
+      color: black;
     }
-
     .container {
-      max-width: 480px;
-      margin: 5vh auto;
-      padding: 2rem;
-      background-color: #fffaf5;
-      border-radius: 16px;
-      box-shadow: 0 8px 20px rgba(255, 165, 0, 0.2);
-      border: 1px solid #ffcc99;
-    }
-
-    h2 {
+      width: 80%;
+      margin: 0 auto;
+      padding: 20px;
       text-align: center;
-      color: #ff6600;
-    }
-
-    label {
-      display: block;
-      margin-top: 1rem;
-      font-weight: bold;
-    }
-
-    input, select, textarea, button {
-      width: 100%;
-      padding: 10px;
-      margin-top: 0.5rem;
-      border-radius: 8px;
-      border: 1px solid #ffcc99;
-      box-sizing: border-box;
-      font-size: 1rem;
-      transition: border-color 0.3s;
-    }
-
-    input:focus, select:focus, textarea:focus {
-      border-color: #ff6600;
-      outline: none;
-    }
-
-    button {
       background-color: #ff6600;
       color: white;
+      border-radius: 8px;
+    }
+    h1 {
+      color: white;
+    }
+    input, button {
+      padding: 10px;
+      margin: 10px;
+      font-size: 16px;
       border: none;
-      margin-top: 1.5rem;
+      border-radius: 5px;
+    }
+    button {
       cursor: pointer;
-      font-weight: bold;
+      background-color: #ff6600;
+      color: white;
     }
-
-    button:hover {
-      background-color: #e65c00;
+    button:disabled {
+      background-color: #ccc;
     }
-
-    #status {
-      margin-top: 1rem;
-      text-align: center;
-      font-weight: bold;
-      color: #e65c00;
+    #leaveRequest {
+      background-color: #ff9900;
     }
-
-    #reasonGroup {
-      display: none;
-    }
-
-    @media (max-width: 520px) {
-      .container {
-        margin: 2rem 1rem;
-      }
+    #loginLogoutButtons {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
     }
   </style>
 </head>
 <body>
 
   <div class="container">
-    <h2>Google Meet Attendance</h2>
+    <h1>Attendance Tracker</h1>
+    
+    <!-- Phone Number Input -->
+    <input type="text" id="phoneNumber" placeholder="Enter Phone Number (10 digits)" maxlength="10" required>
+    
+    <!-- Location Input -->
+    <input type="text" id="location" placeholder="Enter Location" required>
 
-    <form id="attendanceForm">
-      <label for="phone">Phone Number (10-digit):</label>
-      <input type="tel" id="phone" pattern="\d{10}" required placeholder="Enter 10-digit phone number">
+    <!-- Leave Request -->
+    <button id="leaveRequestBtn" onclick="requestLeave()">Leave Request</button>
 
-      <label for="action">Action:</label>
-      <select id="action" required>
-        <option value="">-- Select --</option>
-        <option value="Login">Login</option>
-        <option value="Logout">Logout</option>
-        <option value="Leave">Leave Request</option>
-      </select>
-
-      <div id="reasonGroup">
-        <label for="reason">Reason (required for Leave):</label>
-        <textarea id="reason" rows="3"></textarea>
-      </div>
-
-      <button type="submit">Submit</button>
-    </form>
-
-    <p id="status"></p>
+    <div id="loginLogoutButtons">
+      <button id="loginBtn" onclick="login()">Login</button>
+      <button id="logoutBtn" onclick="logout()">Logout</button>
+    </div>
+    
+    <!-- Leave Form -->
+    <div id="leaveForm" style="display: none;">
+      <h2>Leave Request Form</h2>
+      <input type="date" id="leaveDate" required>
+      <textarea id="reason" placeholder="Reason for leave" required></textarea>
+      <button id="submitLeaveBtn" onclick="submitLeave()">Submit Leave Request</button>
+      <button id="cancelLeaveBtn" onclick="cancelLeave()">Cancel</button>
+    </div>
   </div>
 
   <script>
-    const form = document.getElementById('attendanceForm');
-    const status = document.getElementById('status');
-    const actionSelect = document.getElementById('action');
-    const reasonGroup = document.getElementById('reasonGroup');
+    const scriptUrl = 'https://script.google.com/macros/s/AKfycbxrSh9HkfM_iQmMdqgKiFGxRpFnlniPBHsJRZ19UsnbOyZ0-UdXbDCMJDDIqCFXQS2Ocw/exec';
 
-    actionSelect.addEventListener('change', () => {
-      reasonGroup.style.display = actionSelect.value === 'Leave' ? 'block' : 'none';
-    });
+    // Toggle visibility of Leave form
+    function requestLeave() {
+      document.getElementById('leaveForm').style.display = 'block';
+      document.getElementById('loginLogoutButtons').style.display = 'none';
+      document.getElementById('leaveRequestBtn').disabled = true;
+    }
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      status.textContent = '📡 Submitting...';
-
-      const phone = document.getElementById('phone').value.trim();
-      const action = actionSelect.value;
+    // Submit leave request
+    function submitLeave() {
+      const phone = document.getElementById('phoneNumber').value;
+      const leaveDate = document.getElementById('leaveDate').value;
       const reason = document.getElementById('reason').value;
 
-      if (!/^\d{10}$/.test(phone)) {
-        status.textContent = "❌ Please enter a valid 10-digit phone number.";
-        return;
-      }
+      fetch(scriptUrl, {
+        method: 'POST',
+        body: new URLSearchParams({
+          action: 'leave',
+          phone: phone,
+          leaveDate: leaveDate,
+          reason: reason
+        })
+      })
+      .then(response => response.text())
+      .then(data => {
+        alert('Leave request submitted');
+        console.log(data);
+        cancelLeave();
+      })
+      .catch(error => console.error('Error:', error));
+    }
 
-      navigator.geolocation.getCurrentPosition(async (position) => {
-        const payload = {
-          phone,
-          action,
-          reason,
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude
-        };
+    // Cancel leave request
+    function cancelLeave() {
+      document.getElementById('leaveForm').style.display = 'none';
+      document.getElementById('loginLogoutButtons').style.display = 'flex';
+      document.getElementById('leaveRequestBtn').disabled = false;
+    }
 
-        try {
-          await fetch('https://script.google.com/macros/s/AKfycbyEDgkBWO__yDRaZLrwqV-W5PvHRRZZlpF1E75uRbpw99QUWSU9MX5-D08fda6LlwE1zg/exec', {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
-          });
-          status.textContent = "✅ Submitted!";
-        } catch (error) {
-          status.textContent = "❌ Submission failed.";
-          console.error(error);
-        }
-      }, () => {
-        status.textContent = "⚠️ Unable to fetch location.";
-      });
-    });
+    // Login functionality
+    function login() {
+      const phone = document.getElementById('phoneNumber').value;
+      const location = document.getElementById('location').value;
+
+      fetch(scriptUrl, {
+        method: 'POST',
+        body: new URLSearchParams({
+          action: 'login',
+          phone: phone,
+          location: location
+        })
+      })
+      .then(response => response.text())
+      .then(data => {
+        alert('Login successful');
+        console.log(data);
+      })
+      .catch(error => console.error('Error:', error));
+    }
+
+    // Logout functionality
+    function logout() {
+      const phone = document.getElementById('phoneNumber').value;
+      const location = document.getElementById('location').value;
+
+      fetch(scriptUrl, {
+        method: 'POST',
+        body: new URLSearchParams({
+          action: 'logout',
+          phone: phone,
+          location: location
+        })
+      })
+      .then(response => response.text())
+      .then(data => {
+        alert('Logout successful');
+        console.log(data);
+      })
+      .catch(error => console.error('Error:', error));
+    }
   </script>
-
 </body>
 </html>
