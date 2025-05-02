@@ -85,8 +85,8 @@
     <h2>Google Meet Attendance</h2>
 
     <form id="attendanceForm">
-      <label for="phone">Phone Number:</label>
-      <input type="text" id="phone" pattern="\d{10}" maxlength="10" required title="Enter a 10-digit phone number">
+      <label for="phone">Phone Number (10-digit):</label>
+      <input type="tel" id="phone" pattern="\d{10}" required placeholder="Enter 10-digit phone number">
 
       <label for="action">Action:</label>
       <select id="action" required>
@@ -119,32 +119,30 @@
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      status.textContent = 'Submitting...';
+      status.textContent = '📡 Submitting...';
 
       const phone = document.getElementById('phone').value.trim();
       const action = actionSelect.value;
       const reason = document.getElementById('reason').value;
 
       if (!/^\d{10}$/.test(phone)) {
-        status.textContent = "❌ Invalid phone number. Please enter 10 digits.";
+        status.textContent = "❌ Please enter a valid 10-digit phone number.";
         return;
       }
 
       navigator.geolocation.getCurrentPosition(async (position) => {
-        const latitude = position.coords.latitude;
-        const longitude = position.coords.longitude;
-
         const payload = {
           phone,
           action,
           reason,
-          latitude,
-          longitude
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude
         };
 
         try {
           await fetch('https://script.google.com/macros/s/AKfycbyEDgkBWO__yDRaZLrwqV-W5PvHRRZZlpF1E75uRbpw99QUWSU9MX5-D08fda6LlwE1zg/exec', {
             method: 'POST',
+            mode: 'no-cors',
             headers: {
               'Content-Type': 'application/json'
             },
