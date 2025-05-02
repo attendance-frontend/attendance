@@ -29,9 +29,6 @@
       border: none;
       border-radius: 5px;
     }
-    input[readonly] {
-      background-color: #f3f3f3;
-    }
     button {
       cursor: pointer;
       background-color: #ff6600;
@@ -68,8 +65,8 @@
     <!-- Phone Number Input -->
     <input type="text" id="phoneNumber" placeholder="Enter Phone Number (10 digits)" maxlength="10" required />
 
-    <!-- GPS Location (Auto Fetched) -->
-    <input type="text" id="location" placeholder="Fetching location..." readonly required />
+    <!-- Hidden Location Storage -->
+    <input type="hidden" id="location" />
 
     <!-- Leave Request -->
     <button id="leaveRequestBtn" onclick="requestLeave()">Leave Request</button>
@@ -93,15 +90,14 @@
 
   <script>
     const scriptUrl = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec'; // Replace with actual URL
+    let currentLocation = "";
 
-    // Fetch GPS location
     function fetchLocation() {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           (position) => {
-            const lat = position.coords.latitude.toFixed(6);
-            const lon = position.coords.longitude.toFixed(6);
-            document.getElementById('location').value = `${lat},${lon}`;
+            currentLocation = `${position.coords.latitude.toFixed(6)},${position.coords.longitude.toFixed(6)}`;
+            document.getElementById('location').value = currentLocation;
           },
           (error) => {
             console.error("Location error:", error);
@@ -113,7 +109,6 @@
       }
     }
 
-    // Leave Request UI
     function requestLeave() {
       document.getElementById('leaveForm').style.display = 'block';
       document.getElementById('loginLogoutButtons').style.display = 'none';
@@ -126,7 +121,6 @@
       document.getElementById('leaveRequestBtn').disabled = false;
     }
 
-    // Submit Leave Request
     function submitLeave() {
       const phone = document.getElementById('phoneNumber').value;
       const leaveDate = document.getElementById('leaveDate').value;
@@ -141,58 +135,53 @@
           reason: reason
         })
       })
-        .then(response => response.text())
-        .then(data => {
-          alert('Leave request submitted');
-          console.log(data);
-          cancelLeave();
-        })
-        .catch(error => console.error('Error:', error));
+      .then(response => response.text())
+      .then(data => {
+        alert('Leave request submitted');
+        console.log(data);
+        cancelLeave();
+      })
+      .catch(error => console.error('Error:', error));
     }
 
-    // Login
     function login() {
       const phone = document.getElementById('phoneNumber').value;
-      const location = document.getElementById('location').value;
 
       fetch(scriptUrl, {
         method: 'POST',
         body: new URLSearchParams({
           action: 'login',
           phone: phone,
-          location: location
+          location: currentLocation
         })
       })
-        .then(response => response.text())
-        .then(data => {
-          alert('Login successful');
-          console.log(data);
-        })
-        .catch(error => console.error('Error:', error));
+      .then(response => response.text())
+      .then(data => {
+        alert('Login successful');
+        console.log(data);
+      })
+      .catch(error => console.error('Error:', error));
     }
 
-    // Logout
     function logout() {
       const phone = document.getElementById('phoneNumber').value;
-      const location = document.getElementById('location').value;
 
       fetch(scriptUrl, {
         method: 'POST',
         body: new URLSearchParams({
           action: 'logout',
           phone: phone,
-          location: location
+          location: currentLocation
         })
       })
-        .then(response => response.text())
-        .then(data => {
-          alert('Logout successful');
-          console.log(data);
-        })
-        .catch(error => console.error('Error:', error));
+      .then(response => response.text())
+      .then(data => {
+        alert('Logout successful');
+        console.log(data);
+      })
+      .catch(error => console.error('Error:', error));
     }
 
-    // Auto-fetch GPS location on page load
     window.onload = fetchLocation;
   </script>
 </body>
