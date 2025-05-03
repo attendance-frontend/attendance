@@ -1,137 +1,95 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <base target="_top">
-    <style>
-      body {
-        font-family: 'Segoe UI', sans-serif;
-        background-color: #f7f7f7;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-      }
+let gpsLocation = "";
 
-      .card {
-        background: white;
-        border-radius: 1rem;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        padding: 2rem;
-        width: 100%;
-        max-width: 400px;
-      }
+// Collect GPS in background
+navigator.geolocation.getCurrentPosition(
+  position => {
+    gpsLocation = `${position.coords.latitude}, ${position.coords.longitude}`;
+  },
+  () => {
+    showToast("Unable to fetch location. Please try again.", 5000); // Longer duration for location error
+  }
+);
 
-      input, select, button {
-        width: 100%;
-        padding: 10px;
-        margin-top: 0.75rem;
-        border-radius: 0.5rem;
-        border: 1px solid #ccc;
-        font-size: 1rem;
-      }
+function showToast(message, duration = 3000) {
+  const toast = document.getElementById("toast");
+  toast.innerText = message;
+  toast.className = "show";
+  setTimeout(() => {
+    toast.className = toast.className.replace("show", "");
+  }, duration); // Duration is configurable (default 3000ms)
+}
 
-      button {
-        background-color: #ff9800;
-        color: white;
-        border: none;
-        cursor: pointer;
-        transition: background 0.3s;
-      }
+function track(action) {
+  const phoneNumber = document.getElementById('phoneNumber').value;
+  if (!phoneNumber) {
+    showToast("Please enter your phone number.");
+    return;
+  }
 
-      button:hover {
-        background-color: #fb8c00;
-      }
+  if (!gpsLocation) {
+    showToast("Location not available yet. Try again shortly.");
+    return;
+  }
 
-      .alert {
-        padding: 10px;
-        margin-top: 1rem;
-        border-radius: 0.5rem;
-        font-weight: 500;
-        display: none;
-      }
+  // Call backend
+  const data = {
+    action: action,
+    phone: phoneNumber,
+    location: gpsLocation
+  };
 
-      .alert.success {
-        background-color: #dff0d8;
-        color: #3c763d;
-      }
+  sendToBackend(data);
+}
 
-      .alert.error {
-        background-color: #f8d7da;
-        color: #842029;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="card">
-      <h2 style="text-align:center;">Attendance Tracker</h2>
-      <input type="text" id="phone" placeholder="Phone Number" required />
-      <input type="text" id="location" placeholder="Location (optional)" />
+function submitLeaveRequest() {
+  const phoneNumber = document.getElementById('phoneNumber').value;
+  const leaveDate = document.getElementById('leaveDate').value;
+  const leaveReason = document.getElementById('leaveReason').value;
 
-      <button onclick="submitForm('login')">Login</button>
-      <button onclick="submitForm('logout')">Logout</button>
+  if (!phoneNumber || !leaveDate || !leaveReason) {
+    showToast("Please fill in all fields.");
+    return;
+  }
 
-      <hr />
+  // Prepare data for leave request
+  const data = {
+    action: 'leave',
+    phone: phoneNumber,
+    leaveDate: leaveDate,
+    reason: leaveReason
+  };
 
-      <input type="date" id="leaveDate" />
-      <input type="text" id="reason" placeholder="Leave Reason" />
-      <button onclick="submitForm('leave')">Request Leave</button>
+  sendToBackend(data);
+}
 
-      <div id="alertBox" class="alert"></div>
-    </div>
+function sendToBackend(data) {
+  // Make a POST request to the Google Apps Script backend
+  fetch('https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: new URLSearchParams(data)
+  })
+  .then(response => response.text())
+  .then(responseText => {
+    showToast(responseText);  // Show backend response as toast notification
+  })
+  .catch(error => {
+    showToast('Error: ' + error.message);
+  });
+}
 
-    <script>
-      const scriptURL = "https://script.google.com/macros/s/AKfycbxrSh9HkfM_iQmMdqgKiFGxRpFnlniPBHsJRZ19UsnbOyZ0-UdXbDCMJDDIqCFXQS2Ocw/exec"; // Replace with your Web App URL
+function showLeaveForm() {
+  document.getElementById('leaveForm').style.display = 'block';
+  document.getElementById('loginBtn').disabled = true;
+  document.getElementById('logoutBtn').disabled = true;
+}
 
-      function showAlert(message, type = 'success') {
-        const alertBox = document.getElementById('alertBox');
-        alertBox.textContent = message;
-        alertBox.className = `alert ${type}`;
-        alertBox.style.display = 'block';
-      }
-
-      function submitForm(action) {
-        const phone = document.getElementById('phone').value.trim();
-        const location = document.getElementById('location').value.trim();
-        const leaveDate = document.getElementById('leaveDate').value;
-        const reason = document.getElementById('reason').value.trim();
-
-        if (!phone) {
-          showAlert("Phone number is required.", 'error');
-          return;
-        }
-
-        const formData = new FormData();
-        formData.append("action", action);
-        formData.append("phone", phone);
-
-        if (action === "login" || action === "logout") {
-          formData.append("location", location);
-        } else if (action === "leave") {
-          if (!leaveDate || !reason) {
-            showAlert("Please provide leave date and reason.", 'error');
-            return;
-          }
-          formData.append("leaveDate", leaveDate);
-          formData.append("reason", reason);
-        }
-
-        fetch(scriptURL, {
-          method: "POST",
-          body: formData,
-        })
-          .then(response => response.text())
-          .then(text => {
-            if (text.startsWith("Error")) {
-              showAlert(text, 'error');
-            } else {
-              showAlert(text, 'success');
-            }
-          })
-          .catch(error => {
-            console.error(error);
-            showAlert("Network error. Please try again.", 'error');
-          });
-      }
-    </script>
-  </body>
-</html>
+function cancelLeaveRequest() {
+  document.getElementById('leaveForm').style.display = 'none';
+  document.getElementById('loginBtn').disabled = false;
+  document.getElementById('logoutBtn').disabled = false;
+  document.getElementById('leaveDate').value = '';
+  document.getElementById('leaveReason').value = '';
+}
