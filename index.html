@@ -115,7 +115,7 @@
   <h1>Login/Logout Tracker</h1>
 
   <div class="container">
-    <input type="text" id="phoneNumber" placeholder="Enter Phone Number" required>
+    <input type="tel" id="phoneNumber" pattern="[0-9]{10}" placeholder="Enter 10-digit Phone Number" required>
 
     <div class="button-container">
       <input type="button" value="Login" id="loginBtn" onclick="track('login')">
