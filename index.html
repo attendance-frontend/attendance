@@ -1,210 +1,137 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login/Logout Tracker</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #FFFFFF;
-      color: #333333;
-      text-align: center;
-      margin: 0;
-      padding: 0;
-    }
-
-    h1 {
-      color: #FF7F32;
-      margin-top: 50px;
-    }
-
-    .container {
-      width: 350px;
-      margin: 50px auto;
-      padding: 30px;
-      background-color: #f7f7f7;
-      border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-
-    input[type="text"], input[type="button"], input[type="date"], textarea {
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      border-radius: 5px;
-      border: 1px solid #ddd;
-      font-size: 16px;
-    }
-
-    input[type="button"] {
-      background-color: #FF7F32;
-      color: white;
-      cursor: pointer;
-      border: none;
-    }
-
-    input[type="button"]:hover {
-      background-color: #FF4C00;
-    }
-
-    input[type="button"]:disabled {
-      background-color: #CCCCCC;
-      color: #888888;
-      cursor: not-allowed;
-    }
-
-    .button-container {
-      margin-top: 20px;
-    }
-
-    .leave-request {
-      margin-top: 30px;
-      font-size: 16px;
-      color: #FF7F32;
-    }
-
-    .leave-request button {
-      background-color: #FF7F32;
-      color: white;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    .leave-request button:hover {
-      background-color: #FF4C00;
-    }
-
-    .leave-form {
-      display: none;
-      margin-top: 20px;
-    }
-
-    .leave-form input[type="date"], .leave-form textarea {
-      margin-bottom: 15px;
-    }
-
-    .leave-form textarea {
-      height: 100px;
-    }
-
-    .leave-form button {
-      background-color: #FF7F32;
-      color: white;
-      padding: 12px 25px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    .leave-form button:hover {
-      background-color: #FF4C00;
-    }
-
-    .footer {
-      margin-top: 40px;
-      font-size: 14px;
-      color: #888;
-    }
-  </style>
-</head>
-<body>
-
-  <h1>Login/Logout Tracker</h1>
-
-  <div class="container">
-    <input type="tel" id="phoneNumber" pattern="[0-9]{10}" placeholder="Enter 10-digit Phone Number" required>
-
-    <div class="button-container">
-      <input type="button" value="Login" id="loginBtn" onclick="track('login')">
-      <input type="button" value="Logout" id="logoutBtn" onclick="track('logout')">
-    </div>
-
-    <div class="leave-request">
-      <p>Need to take leave?</p>
-      <button onclick="showLeaveForm()">Request Leave</button>
-    </div>
-
-    <div class="leave-form" id="leaveForm">
-      <input type="date" id="leaveDate" required><br>
-      <textarea id="leaveReason" placeholder="Enter reason for leave" required></textarea><br>
-      <button onclick="submitLeaveRequest()">Submit Leave Request</button>
-      <button onclick="cancelLeaveRequest()">Cancel</button>
-    </div>
-  </div>
-
-  <div class="footer">
-    <p>&copy; 2025 Attendance Tracker. All rights reserved.</p>
-  </div>
-
-  <script>
-    let currentLocation = "";
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        currentLocation = `${position.coords.latitude},${position.coords.longitude}`;
-      },
-      (error) => {
-        console.warn("Location error:", error);
-      }
-    );
-
-    function track(action) {
-      const phone = document.getElementById('phoneNumber').value.trim();
-      if (!phone) {
-        alert("Please enter your phone number.");
-        return;
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      body {
+        font-family: 'Segoe UI', sans-serif;
+        background-color: #f7f7f7;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
       }
 
-      fetch('https://script.google.com/macros/s/AKfycbxrSh9HkfM_iQmMdqgKiFGxRpFnlniPBHsJRZ19UsnbOyZ0-UdXbDCMJDDIqCFXQS2Ocw/exec', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `action=${action}&phone=${encodeURIComponent(phone)}&location=${encodeURIComponent(currentLocation)}`
-      })
-      .then(response => response.text())
-      .then(msg => alert(msg))
-      .catch(err => alert("Request failed: " + err));
-    }
-
-    function showLeaveForm() {
-      document.getElementById('leaveForm').style.display = 'block';
-      document.getElementById('loginBtn').disabled = true;
-      document.getElementById('logoutBtn').disabled = true;
-    }
-
-    function cancelLeaveRequest() {
-      document.getElementById('leaveForm').style.display = 'none';
-      document.getElementById('loginBtn').disabled = false;
-      document.getElementById('logoutBtn').disabled = false;
-      document.getElementById('leaveDate').value = '';
-      document.getElementById('leaveReason').value = '';
-    }
-
-    function submitLeaveRequest() {
-      const phone = document.getElementById('phoneNumber').value.trim();
-      const date = document.getElementById('leaveDate').value;
-      const reason = document.getElementById('leaveReason').value.trim();
-
-      if (!phone || !date || !reason) {
-        alert("Please fill in all fields.");
-        return;
+      .card {
+        background: white;
+        border-radius: 1rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        padding: 2rem;
+        width: 100%;
+        max-width: 400px;
       }
 
-      fetch('https://script.google.com/macros/s/AKfycbxrSh9HkfM_iQmMdqgKiFGxRpFnlniPBHsJRZ19UsnbOyZ0-UdXbDCMJDDIqCFXQS2Ocw/exec', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `action=leave&phone=${encodeURIComponent(phone)}&leaveDate=${encodeURIComponent(date)}&reason=${encodeURIComponent(reason)}`
-      })
-      .then(response => response.text())
-      .then(msg => {
-        alert(msg);
-        cancelLeaveRequest();
-      })
-      .catch(err => alert("Request failed: " + err));
-    }
-  </script>
+      input, select, button {
+        width: 100%;
+        padding: 10px;
+        margin-top: 0.75rem;
+        border-radius: 0.5rem;
+        border: 1px solid #ccc;
+        font-size: 1rem;
+      }
 
-</body>
+      button {
+        background-color: #ff9800;
+        color: white;
+        border: none;
+        cursor: pointer;
+        transition: background 0.3s;
+      }
+
+      button:hover {
+        background-color: #fb8c00;
+      }
+
+      .alert {
+        padding: 10px;
+        margin-top: 1rem;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        display: none;
+      }
+
+      .alert.success {
+        background-color: #dff0d8;
+        color: #3c763d;
+      }
+
+      .alert.error {
+        background-color: #f8d7da;
+        color: #842029;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h2 style="text-align:center;">Attendance Tracker</h2>
+      <input type="text" id="phone" placeholder="Phone Number" required />
+      <input type="text" id="location" placeholder="Location (optional)" />
+
+      <button onclick="submitForm('login')">Login</button>
+      <button onclick="submitForm('logout')">Logout</button>
+
+      <hr />
+
+      <input type="date" id="leaveDate" />
+      <input type="text" id="reason" placeholder="Leave Reason" />
+      <button onclick="submitForm('leave')">Request Leave</button>
+
+      <div id="alertBox" class="alert"></div>
+    </div>
+
+    <script>
+      const scriptURL = "https://script.google.com/macros/s/YOUR_DEPLOYED_URL/exec"; // Replace with your Web App URL
+
+      function showAlert(message, type = 'success') {
+        const alertBox = document.getElementById('alertBox');
+        alertBox.textContent = message;
+        alertBox.className = `alert ${type}`;
+        alertBox.style.display = 'block';
+      }
+
+      function submitForm(action) {
+        const phone = document.getElementById('phone').value.trim();
+        const location = document.getElementById('location').value.trim();
+        const leaveDate = document.getElementById('leaveDate').value;
+        const reason = document.getElementById('reason').value.trim();
+
+        if (!phone) {
+          showAlert("Phone number is required.", 'error');
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append("action", action);
+        formData.append("phone", phone);
+
+        if (action === "login" || action === "logout") {
+          formData.append("location", location);
+        } else if (action === "leave") {
+          if (!leaveDate || !reason) {
+            showAlert("Please provide leave date and reason.", 'error');
+            return;
+          }
+          formData.append("leaveDate", leaveDate);
+          formData.append("reason", reason);
+        }
+
+        fetch(scriptURL, {
+          method: "POST",
+          body: formData,
+        })
+          .then(response => response.text())
+          .then(text => {
+            if (text.startsWith("Error")) {
+              showAlert(text, 'error');
+            } else {
+              showAlert(text, 'success');
+            }
+          })
+          .catch(error => {
+            console.error(error);
+            showAlert("Network error. Please try again.", 'error');
+          });
+      }
+    </script>
+  </body>
 </html>
